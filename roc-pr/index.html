@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROC & PR Explorer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0b0e14;
+    --surface: #131720;
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --text-muted: #475569;
+    --accent: #6d9fff;
+    --perfect: #34d399;
+    --mid: #6d9fff;
+    --random: #f87171;
+    --perfect-fill: rgba(52,211,153,0.08);
+    --mid-fill: rgba(109,159,255,0.08);
+    --random-fill: rgba(248,113,113,0.08);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 24px 20px;
+  }
+
+  .container {
+    max-width: 1060px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 28px;
+  }
+
+  header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+
+  header p {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* ── Controls ─────────────────────────────── */
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 28px;
+  }
+
+  .control-group label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .control-group .value-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .control-group input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+    height: 4px;
+  }
+
+  .control-group .value-display {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    min-width: 70px;
+    text-align: right;
+  }
+
+  .control-group .sub-info {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .btn-run {
+    align-self: end;
+    padding: 10px 28px;
+    border-radius: 8px;
+    border: 1px solid var(--border-hover);
+    background: rgba(109,159,255,0.1);
+    color: var(--accent);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-run:hover {
+    background: rgba(109,159,255,0.18);
+    border-color: var(--accent);
+  }
+
+  .btn-run:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-run.running {
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  /* ── Charts ───────────────────────────────── */
+  .charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 700px) {
+    .charts { grid-template-columns: 1fr; }
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .chart-card h2 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .chart-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+  }
+
+  .chart-wrapper canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── Legend / AUC table ───────────────────── */
+  .auc-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .auc-table h3 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: var(--text);
+  }
+
+  .auc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px 20px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .auc-grid .hdr {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .auc-grid .model-name {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .auc-grid .auc-val {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .auc-grid .auc-val .pm {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* ── Progress ─────────────────────────────── */
+  .progress-bar-container {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .progress-bar-container.active { display: block; }
+
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.1s;
+    width: 0%;
+  }
+
+  /* ── Note ──────────────────────────────────── */
+  .note {
+    margin-top: 20px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    background: rgba(109,159,255,0.05);
+    border: 1px solid rgba(109,159,255,0.1);
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--text-dim);
+  }
+
+  .note strong { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>ROC &amp; Precision-Recall Explorer</h1>
+    <p>Impact du déséquilibre des classes sur l'évaluation d'un classifieur — simulation Monte Carlo</p>
+  </header>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Nombre total d'observations</label>
+      <div class="value-row">
+        <input type="range" id="sliderN" min="1000" max="200000" step="1000" value="50000">
+        <span class="value-display" id="valN">50 000</span>
+      </div>
+    </div>
+    <div class="control-group">
+      <label>Nombre de fraudes (positifs)</label>
+      <div class="value-row">
+        <input type="range" id="sliderFrauds" min="50" max="100000" step="50" value="5000">
+        <span class="value-display" id="valFrauds">5 000</span>
+      </div>
+      <div class="sub-info" id="fraudRate">Taux : 10.0%</div>
+    </div>
+    <div class="control-group">
+      <label>Simulations Monte Carlo</label>
+      <div class="value-row">
+        <input type="range" id="sliderMC" min="1" max="50" step="1" value="10">
+        <span class="value-display" id="valMC">10</span>
+      </div>
+    </div>
+    <div class="control-group" style="display:flex;flex-direction:column;justify-content:end;">
+      <button class="btn-run" id="btnRun" onclick="runSimulation()">▶ Lancer</button>
+      <div class="progress-bar-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="chart-card">
+      <h2>Courbe ROC</h2>
+      <div class="chart-wrapper">
+        <canvas id="canvasROC"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h2>Courbe Precision-Recall</h2>
+      <div class="chart-wrapper">
+        <canvas id="canvasPR"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="auc-table">
+    <h3>Aires sous la courbe (AUC) — moyenne ± écart-type sur les simulations</h3>
+    <div class="auc-grid" id="aucGrid">
+      <span class="hdr">Modèle</span>
+      <span class="hdr">ROC AUC</span>
+      <span class="hdr">PR AUC</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Comment ça marche :</strong>
+    chaque modèle attribue un score continu ∈ [0, 1] à chaque observation.
+    Les scores sont générés via deux gaussiennes (positifs vs négatifs) séparées par un paramètre de qualité.
+    On balaie les seuils pour calculer TPR, FPR, Precision, Recall.
+    La simulation Monte Carlo répète l'expérience N fois pour montrer la variabilité.
+    Observe comment la courbe PR est beaucoup plus sensible au déséquilibre que la ROC.
+  </div>
+</div>
+
+<script>
+// ── Utilities ──────────────────────────────────────────────────
+
+function fmt(n) { return n.toLocaleString('fr-FR'); }
+
+// Box-Muller for normal distribution
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+
+// ── Score generation ───────────────────────────────────────────
+
+function generateScores(nPos, nNeg, separation) {
+  const n = nPos + nNeg;
+  const scores = new Float64Array(n);
+  // labels: first nPos = 1, rest = 0
+  for (let i = 0; i < nPos; i++) scores[i] = sigmoid(randn() + separation);
+  for (let i = nPos; i < n; i++) scores[i] = sigmoid(randn());
+  return scores;
+}
+
+// ── Curve computation ──────────────────────────────────────────
+
+function computeROC(nPos, nNeg, scores) {
+  const n = nPos + nNeg;
+  // Create index array sorted by descending score
+  const indices = new Array(n);
+  for (let i = 0; i < n; i++) indices[i] = i;
+  indices.sort((a, b) => scores[b] - scores[a]);
+
+  const fprArr = [0];
+  const tprArr = [0];
+  let tp = 0, fp = 0;
+
+  for (let k = 0; k < n; k++) {
+    const idx = indices[k];
+    if (idx < nPos) tp++; else fp++;
+    // Only record point if score changes or it's the last
+    if (k === n - 1 || scores[indices[k]] !== scores[indices[k + 1]]) {
+      fprArr.push(fp / nNeg);
+      tprArr.push(tp / nPos);
+    }
+  }
+
+  return { fpr: fprArr, tpr: tprArr };
+}
+
+function computePR(nPos, nNeg, scores) {
+  const n = nPos + nNeg;
+  const indices = new Array(n);
+  for (let i = 0; i < n; i++) indices[i] = i;
+  indices.sort((a, b) => scores[b] - scores[a]);
+
+  const recallArr = [0];
+  const precisionArr = [1];
+  let tp = 0, fp = 0;
+
+  for (let k = 0; k < n; k++) {
+    const idx = indices[k];
+    if (idx < nPos) tp++; else fp++;
+    if (k === n - 1 || scores[indices[k]] !== scores[indices[k + 1]]) {
+      recallArr.push(tp / nPos);
+      precisionArr.push(tp / (tp + fp));
+    }
+  }
+
+  return { recall: recallArr, precision: precisionArr };
+}
+
+function trapezoidAUC(xs, ys) {
+  let area = 0;
+  for (let i = 1; i < xs.length; i++) {
+    area += (xs[i] - xs[i - 1]) * (ys[i] + ys[i - 1]) / 2;
+  }
+  return Math.max(0, Math.min(1, area));
+}
+
+// ── Interpolation for averaging curves ─────────────────────────
+
+function interpolateCurve(xs, ys, grid) {
+  // xs must be sorted ascending — handle duplicates by keeping last y
+  const result = new Float64Array(grid.length);
+  let j = 0;
+  for (let i = 0; i < grid.length; i++) {
+    while (j < xs.length - 1 && xs[j + 1] <= grid[i]) j++;
+    if (j >= xs.length - 1) {
+      result[i] = ys[ys.length - 1];
+    } else if (grid[i] <= xs[0]) {
+      result[i] = ys[0];
+    } else {
+      const t = (grid[i] - xs[j]) / (xs[j + 1] - xs[j] || 1e-12);
+      result[i] = ys[j] + t * (ys[j + 1] - ys[j]);
+    }
+  }
+  return result;
+}
+
+// ── Drawing ────────────────────────────────────────────────────
+
+const GRID_POINTS = 300;
+const xGrid = new Float64Array(GRID_POINTS);
+for (let i = 0; i < GRID_POINTS; i++) xGrid[i] = i / (GRID_POINTS - 1);
+
+const MODELS = [
+  { name: 'Modèle parfait',    sep: 3.5, color: '#34d399', fill: 'rgba(52,211,153,0.07)' },
+  { name: 'Modèle mid',        sep: 1.0, color: '#6d9fff', fill: 'rgba(109,159,255,0.07)' },
+  { name: 'Modèle aléatoire',  sep: 0.0, color: '#f87171', fill: 'rgba(248,113,113,0.07)' },
+];
+
+function drawChart(canvas, allCurves, xLabel, yLabel, guideLine) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const W = rect.width;
+  const H = rect.height;
+  const pad = { top: 12, right: 16, bottom: 38, left: 44 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  const toX = v => pad.left + v * cw;
+  const toY = v => pad.top + (1 - v) * ch;
+
+  // Background
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 0.5;
+  for (let v = 0; v <= 1; v += 0.25) {
+    ctx.beginPath(); ctx.moveTo(toX(0), toY(v)); ctx.lineTo(toX(1), toY(v)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(toX(v), toY(0)); ctx.lineTo(toX(v), toY(1)); ctx.stroke();
+  }
+
+  // Grid labels
+  ctx.fillStyle = '#475569';
+  ctx.font = "11px 'DM Mono', monospace";
+  ctx.textAlign = 'right';
+  for (let v = 0; v <= 1; v += 0.25) {
+    ctx.fillText(v.toFixed(2), pad.left - 6, toY(v) + 4);
+  }
+  ctx.textAlign = 'center';
+  for (let v = 0; v <= 1; v += 0.25) {
+    ctx.fillText(v.toFixed(2), toX(v), H - pad.bottom + 18);
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#64748b';
+  ctx.font = "12px 'DM Sans', sans-serif";
+  ctx.textAlign = 'center';
+  ctx.fillText(xLabel, pad.left + cw / 2, H - 4);
+  ctx.save();
+  ctx.translate(12, pad.top + ch / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText(yLabel, 0, 0);
+  ctx.restore();
+
+  // Guide line (diagonal for ROC, horizontal for PR baseline)
+  if (guideLine != null) {
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    if (guideLine === 'diagonal') {
+      ctx.moveTo(toX(0), toY(0));
+      ctx.lineTo(toX(1), toY(1));
+    } else {
+      ctx.moveTo(toX(0), toY(guideLine));
+      ctx.lineTo(toX(1), toY(guideLine));
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Draw curves
+  for (const { meanY, minY, maxY, color, fill } of allCurves) {
+    // Confidence band
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.moveTo(toX(xGrid[0]), toY(maxY[0]));
+    for (let i = 1; i < GRID_POINTS; i++) ctx.lineTo(toX(xGrid[i]), toY(maxY[i]));
+    for (let i = GRID_POINTS - 1; i >= 0; i--) ctx.lineTo(toX(xGrid[i]), toY(minY[i]));
+    ctx.closePath();
+    ctx.fill();
+
+    // Mean line
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(toX(xGrid[0]), toY(meanY[0]));
+    for (let i = 1; i < GRID_POINTS; i++) ctx.lineTo(toX(xGrid[i]), toY(meanY[i]));
+    ctx.stroke();
+  }
+}
+
+// ── Controls ───────────────────────────────────────────────────
+
+const sliderN = document.getElementById('sliderN');
+const sliderFrauds = document.getElementById('sliderFrauds');
+const sliderMC = document.getElementById('sliderMC');
+const valN = document.getElementById('valN');
+const valFrauds = document.getElementById('valFrauds');
+const valMC = document.getElementById('valMC');
+const fraudRate = document.getElementById('fraudRate');
+const btnRun = document.getElementById('btnRun');
+const progressContainer = document.getElementById('progressContainer');
+const progressBar = document.getElementById('progressBar');
+
+function updateDisplays() {
+  const n = parseInt(sliderN.value);
+  const f = Math.min(parseInt(sliderFrauds.value), n - 1);
+  sliderFrauds.max = n - 1;
+  sliderFrauds.value = f;
+  valN.textContent = fmt(n);
+  valFrauds.textContent = fmt(f);
+  valMC.textContent = sliderMC.value;
+  fraudRate.textContent = `Taux : ${(f / n * 100).toFixed(2)}%`;
+}
+
+sliderN.addEventListener('input', updateDisplays);
+sliderFrauds.addEventListener('input', updateDisplays);
+sliderMC.addEventListener('input', updateDisplays);
+updateDisplays();
+
+// ── Simulation (chunked to keep UI responsive) ─────────────────
+
+async function runSimulation() {
+  const N = parseInt(sliderN.value);
+  const nPos = Math.min(parseInt(sliderFrauds.value), N - 1);
+  const nNeg = N - nPos;
+  const nMC = parseInt(sliderMC.value);
+  const posRate = nPos / N;
+
+  btnRun.disabled = true;
+  btnRun.classList.add('running');
+  btnRun.textContent = '⏳ Calcul…';
+  progressContainer.classList.add('active');
+  progressBar.style.width = '0%';
+
+  // Storage for interpolated curves per model
+  const rocStore = MODELS.map(() => []);
+  const prStore = MODELS.map(() => []);
+  const rocAucs = MODELS.map(() => []);
+  const prAucs = MODELS.map(() => []);
+
+  const totalSteps = nMC * MODELS.length;
+  let step = 0;
+
+  for (let mc = 0; mc < nMC; mc++) {
+    for (let m = 0; m < MODELS.length; m++) {
+      const scores = generateScores(nPos, nNeg, MODELS[m].sep);
+
+      const roc = computeROC(nPos, nNeg, scores);
+      const rocInterp = interpolateCurve(roc.fpr, roc.tpr, xGrid);
+      rocStore[m].push(rocInterp);
+      rocAucs[m].push(trapezoidAUC(roc.fpr, roc.tpr));
+
+      const pr = computePR(nPos, nNeg, scores);
+      const prInterp = interpolateCurve(pr.recall, pr.precision, xGrid);
+      prStore[m].push(prInterp);
+      prAucs[m].push(trapezoidAUC(pr.recall, pr.precision));
+
+      step++;
+      progressBar.style.width = (step / totalSteps * 100).toFixed(1) + '%';
+
+      // Yield to browser every few steps
+      if (step % 3 === 0) await new Promise(r => setTimeout(r, 0));
+    }
+  }
+
+  // Aggregate: mean, min, max per model
+  function aggregate(store) {
+    return store.map((runs, m) => {
+      const meanY = new Float64Array(GRID_POINTS);
+      const minY = new Float64Array(GRID_POINTS).fill(Infinity);
+      const maxY = new Float64Array(GRID_POINTS).fill(-Infinity);
+      for (const run of runs) {
+        for (let i = 0; i < GRID_POINTS; i++) {
+          meanY[i] += run[i];
+          if (run[i] < minY[i]) minY[i] = run[i];
+          if (run[i] > maxY[i]) maxY[i] = run[i];
+        }
+      }
+      for (let i = 0; i < GRID_POINTS; i++) meanY[i] /= runs.length;
+      return {
+        meanY, minY, maxY,
+        color: MODELS[m].color,
+        fill: MODELS[m].fill,
+      };
+    });
+  }
+
+  const rocAgg = aggregate(rocStore);
+  const prAgg = aggregate(prStore);
+
+  // Draw
+  drawChart(document.getElementById('canvasROC'), rocAgg, 'FPR', 'TPR', 'diagonal');
+  drawChart(document.getElementById('canvasPR'), prAgg, 'Recall', 'Precision', posRate);
+
+  // AUC table
+  const grid = document.getElementById('aucGrid');
+  grid.innerHTML = `
+    <span class="hdr">Modèle</span>
+    <span class="hdr">ROC AUC</span>
+    <span class="hdr">PR AUC</span>
+  `;
+  for (let m = 0; m < MODELS.length; m++) {
+    const rocMean = rocAucs[m].reduce((a, b) => a + b, 0) / rocAucs[m].length;
+    const rocStd = Math.sqrt(rocAucs[m].reduce((a, b) => a + (b - rocMean) ** 2, 0) / rocAucs[m].length);
+    const prMean = prAucs[m].reduce((a, b) => a + b, 0) / prAucs[m].length;
+    const prStd = Math.sqrt(prAucs[m].reduce((a, b) => a + (b - prMean) ** 2, 0) / prAucs[m].length);
+
+    grid.innerHTML += `
+      <span class="model-name" style="color:${MODELS[m].color}">${MODELS[m].name}</span>
+      <span class="auc-val">${rocMean.toFixed(4)} <span class="pm">± ${rocStd.toFixed(4)}</span></span>
+      <span class="auc-val">${prMean.toFixed(4)} <span class="pm">± ${prStd.toFixed(4)}</span></span>
+    `;
+  }
+
+  btnRun.disabled = false;
+  btnRun.classList.remove('running');
+  btnRun.textContent = '▶ Lancer';
+  progressContainer.classList.remove('active');
+}
+
+// Initial run
+window.addEventListener('load', () => {
+  // Small delay to let fonts load
+  setTimeout(runSimulation, 200);
+});
+
+// Redraw on resize
+window.addEventListener('resize', () => {
+  // Only redraw if we have data — triggering a new sim is simplest
+  // but we just re-render with existing canvases
+});
+</script>
+</body>
+</html>
