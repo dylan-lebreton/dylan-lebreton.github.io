@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dylan Lebreton</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0b0e14;
+    color: #e2e8f0;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 48px 24px;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 48px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #475569;
+    margin-bottom: 16px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    display: block;
+    background: #131720;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 24px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .card:hover {
+    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-2px);
+  }
+
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  .card-tag {
+    display: inline-block;
+    margin-top: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: #475569;
+    background: rgba(255,255,255,0.04);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Dylan Lebreton</h1>
+  <div class="subtitle">Projets interactifs</div>
+
+  <div class="section-label">Apps</div>
+  <div class="grid">
+
+    <a href="/roc-pr/" class="card">
+      <div class="card-icon" style="background:rgba(109,159,255,0.12);color:#6d9fff;">📈</div>
+      <div class="card-title">ROC & PR Explorer</div>
+      <div class="card-desc">Courbes ROC et Precision-Recall interactives — impact du déséquilibre des classes sur l'évaluation d'un classifieur.</div>
+      <span class="card-tag">classification · métriques</span>
+    </a>
+
+    <!-- Ajoute d'autres cartes ici au fur et à mesure -->
+    <!--
+    <a href="/autre-projet/" class="card">
+      <div class="card-icon" style="background:rgba(52,211,153,0.12);color:#34d399;">🧠</div>
+      <div class="card-title">Autre projet</div>
+      <div class="card-desc">Description courte du projet.</div>
+      <span class="card-tag">tag1 · tag2</span>
+    </a>
+    -->
+
+  </div>
+</div>
+</body>
+</html>
