@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects — Dylan Lebreton</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="container">
+
+  <a href="../" class="breadcrumb">← Accueil</a>
+
+  <h1 class="page-title">Projects</h1>
+  <div class="page-subtitle">apps interactives &amp; notebooks</div>
+
+  <div id="grid" class="grid"></div>
+  <div id="empty" class="empty" style="display:none;">Aucun projet pour le moment.</div>
+
+</div>
+
+<script>
+  function hexToRgba(hex, alpha) {
+    const h = hex.replace('#', '');
+    const bigint = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+    const r = (bigint >> 16) & 255, g = (bigint >> 8) & 255, b = bigint & 255;
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  function escape(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  fetch('./projects.json', { cache: 'no-cache' })
+    .then(r => r.json())
+    .then(projects => {
+      const grid = document.getElementById('grid');
+      const empty = document.getElementById('empty');
+      if (!projects.length) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+      grid.innerHTML = projects.map(p => {
+        const accent = p.accent || '#6d9fff';
+        const tags = (p.tags || []).map(t => `<span class="card-tag">${escape(t)}</span>`).join('');
+        return `
+          <a href="./${encodeURIComponent(p.slug)}/" class="card" style="--card-accent:${accent};">
+            <span class="arrow">↗</span>
+            <div class="card-icon" style="background:${hexToRgba(accent, 0.12)};color:${accent};">${escape(p.icon || '•')}</div>
+            <div class="card-title">${escape(p.title)}</div>
+            <div class="card-desc">${escape(p.description || '')}</div>
+            <div class="card-tags">${tags}</div>
+          </a>
+        `;
+      }).join('');
+    })
+    .catch(err => {
+      document.getElementById('grid').style.display = 'none';
+      const empty = document.getElementById('empty');
+      empty.style.display = 'block';
+      empty.textContent = 'Impossible de charger la liste des projets.';
+      console.error(err);
+    });
+</script>
+</body>
+</html>

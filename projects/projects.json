@@ -1,0 +1,10 @@
+[
+  {
+    "slug": "roc-pr",
+    "title": "ROC & PR Explorer",
+    "description": "Courbes ROC et Precision-Recall interactives — impact du déséquilibre des classes sur l'évaluation d'un classifieur.",
+    "icon": "📈",
+    "accent": "#6d9fff",
+    "tags": ["classification", "métriques"]
+  }
+]
