@@ -3,131 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dylan Lebreton</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: #0b0e14;
-    color: #e2e8f0;
-    font-family: 'DM Sans', system-ui, sans-serif;
-    min-height: 100vh;
-    padding: 48px 24px;
-  }
-
-  .container {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  h1 {
-    font-size: 42px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    margin-bottom: 8px;
-  }
-
-  .subtitle {
-    font-size: 14px;
-    color: #64748b;
-    margin-bottom: 48px;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .section-label {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #475569;
-    margin-bottom: 16px;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
-  }
-
-  .card {
-    display: block;
-    background: #131720;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
-    padding: 24px;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 0.2s, transform 0.2s;
-  }
-
-  .card:hover {
-    border-color: rgba(255,255,255,0.15);
-    transform: translateY(-2px);
-  }
-
-  .card-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    margin-bottom: 14px;
-  }
-
-  .card-title {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-
-  .card-desc {
-    font-size: 12px;
-    color: #64748b;
-    line-height: 1.5;
-  }
-
-  .card-tag {
-    display: inline-block;
-    margin-top: 12px;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: #475569;
-    background: rgba(255,255,255,0.04);
-    padding: 3px 8px;
-    border-radius: 4px;
-  }
-</style>
+<title>Dylan Lebreton — Data Scientist</title>
+<meta name="description" content="Portfolio de Dylan Lebreton — Data Scientist chez HSBC Assurance Vie. Projets interactifs, notes et articles.">
+<link rel="stylesheet" href="./assets/styles.css">
 </head>
 <body>
 <div class="container">
-  <h1>Dylan Lebreton</h1>
-  <div class="subtitle">Projets interactifs</div>
 
-  <div class="section-label">Apps</div>
+  <header class="hero">
+    <div class="eyebrow">Data Scientist · HSBC Assurance Vie</div>
+    <h1>Dylan Lebreton</h1>
+    <div class="role">
+      Machine learning <span class="sep">·</span> séries temporelles <span class="sep">·</span> maths appliquées
+    </div>
+    <p class="bio">
+      Ingénieur maths/info (ENSEEIHT &amp; INSA Toulouse) passé par une startup IoT puis Airbus,
+      aujourd'hui Data Scientist dans l'assurance vie. J'explore ici quelques projets, outils
+      interactifs et notes techniques.
+    </p>
+  </header>
+
+  <div class="section-label">Explorer</div>
   <div class="grid">
 
-    <a href="/roc-pr/" class="card">
-      <div class="card-icon" style="background:rgba(109,159,255,0.12);color:#6d9fff;">📈</div>
-      <div class="card-title">ROC & PR Explorer</div>
-      <div class="card-desc">Courbes ROC et Precision-Recall interactives — impact du déséquilibre des classes sur l'évaluation d'un classifieur.</div>
-      <span class="card-tag">classification · métriques</span>
+    <a href="./bnpp-fraud-detection/" class="card" style="--card-accent:#6d9fff;">
+      <span class="arrow">↗</span>
+      <div class="card-icon" style="background:rgba(109,159,255,0.12);color:#6d9fff;">🔍</div>
+      <div class="card-title">BNPP Fraud Detection</div>
+      <div class="card-desc">Notebook d'étude sur un challenge de détection de fraude — exploration, features, modèles.</div>
+      <div class="card-tags">
+        <span class="card-tag">notebook</span>
+        <span class="card-tag">fraude</span>
+      </div>
     </a>
 
-    <!-- Ajoute d'autres cartes ici au fur et à mesure -->
-    <!--
-    <a href="/autre-projet/" class="card">
-      <div class="card-icon" style="background:rgba(52,211,153,0.12);color:#34d399;">🧠</div>
-      <div class="card-title">Autre projet</div>
-      <div class="card-desc">Description courte du projet.</div>
-      <span class="card-tag">tag1 · tag2</span>
+    <a href="./projects/" class="card" style="--card-accent:#a78bfa;">
+      <span class="arrow">↗</span>
+      <div class="card-icon" style="background:rgba(167,139,250,0.12);color:#a78bfa;">🧪</div>
+      <div class="card-title">Projects</div>
+      <div class="card-desc">Mes apps interactives et notebooks publiés — outils pour explorer des concepts data/ML.</div>
+      <div class="card-tags">
+        <span class="card-tag">apps</span>
+        <span class="card-tag">interactif</span>
+      </div>
     </a>
-    -->
+
+    <a href="./knowledge/" class="card" style="--card-accent:#34d399;">
+      <span class="arrow">↗</span>
+      <div class="card-icon" style="background:rgba(52,211,153,0.12);color:#34d399;">📚</div>
+      <div class="card-title">Knowledge</div>
+      <div class="card-desc">Notes, articles et résumés techniques que j'écris au fil des projets et des lectures.</div>
+      <div class="card-tags">
+        <span class="card-tag">notes</span>
+        <span class="card-tag">articles</span>
+      </div>
+    </a>
 
   </div>
+
+  <div class="section-label">Parcours</div>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="when">Formation</div>
+      <div class="what">ENSEEIHT · INSA Toulouse</div>
+      <div class="where">Ingénieur maths / info</div>
+    </div>
+    <div class="timeline-item">
+      <div class="when">Startup</div>
+      <div class="what">IoT</div>
+      <div class="where">Data &amp; signal</div>
+    </div>
+    <div class="timeline-item">
+      <div class="when">Industrie</div>
+      <div class="what">Airbus</div>
+      <div class="where">Data / ingénierie</div>
+    </div>
+    <div class="timeline-item">
+      <div class="when">Aujourd'hui</div>
+      <div class="what">HSBC Assurance Vie</div>
+      <div class="where">Data Scientist</div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="copy">© Dylan Lebreton</div>
+    <div class="links">
+      <a href="https://github.com/dylan-lebreton" target="_blank" rel="noopener">GitHub ↗</a>
+      <a href="https://www.linkedin.com/in/dylan-lebreton/" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a href="mailto:dylan.lebreton1996@gmail.com">Email</a>
+    </div>
+  </footer>
+
 </div>
 </body>
 </html>
