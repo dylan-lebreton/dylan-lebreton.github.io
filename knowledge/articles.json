@@ -1,0 +1,9 @@
+[
+  {
+    "slug": "hello-world",
+    "title": "Hello World",
+    "date": "2026-04-22",
+    "summary": "Premier article — test du rendu Markdown (titres, listes, blocs de code, citations).",
+    "tags": ["divers", "meta"]
+  }
+]

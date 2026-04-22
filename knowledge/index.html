@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge — Dylan Lebreton</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css">
+</head>
+<body>
+<div class="container">
+
+  <a id="back-home" href="../" class="breadcrumb">← Accueil</a>
+
+  <div id="list-view">
+    <h1 class="page-title">Knowledge</h1>
+    <div class="page-subtitle">notes &amp; articles</div>
+
+    <div id="list" class="article-list"></div>
+    <div id="empty" class="empty" style="display:none;">Aucun article pour le moment.</div>
+  </div>
+
+  <div id="article-view" style="display:none;">
+    <header class="article-header">
+      <div class="meta"><span id="art-date"></span> · <span id="art-tags"></span></div>
+      <h1 id="art-title"></h1>
+    </header>
+    <article id="art-body" class="prose"></article>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/common.min.js"></script>
+<script>
+  const listView = document.getElementById('list-view');
+  const articleView = document.getElementById('article-view');
+  const backLink = document.getElementById('back-home');
+  let articlesCache = null;
+
+  function escape(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  marked.setOptions({
+    gfm: true,
+    breaks: false,
+    highlight: (code, lang) => {
+      try {
+        return lang && hljs.getLanguage(lang)
+          ? hljs.highlight(code, { language: lang }).value
+          : hljs.highlightAuto(code).value;
+      } catch { return escape(code); }
+    }
+  });
+
+  async function loadArticles() {
+    if (articlesCache) return articlesCache;
+    const r = await fetch('./articles.json', { cache: 'no-cache' });
+    articlesCache = await r.json();
+    return articlesCache;
+  }
+
+  async function renderList() {
+    backLink.setAttribute('href', '../');
+    backLink.textContent = '← Accueil';
+    articleView.style.display = 'none';
+    listView.style.display = 'block';
+
+    const list = document.getElementById('list');
+    const empty = document.getElementById('empty');
+    const articles = await loadArticles();
+
+    if (!articles.length) {
+      list.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+
+    list.innerHTML = articles.map(a => {
+      const tags = (a.tags || []).map(t => `<span class="card-tag">${escape(t)}</span>`).join('');
+      return `
+        <a href="#${encodeURIComponent(a.slug)}" class="article-item">
+          <div class="meta">
+            <span>${escape(a.date || '')}</span>
+          </div>
+          <div class="title">${escape(a.title)}</div>
+          <div class="summary">${escape(a.summary || '')}</div>
+          <div class="tags card-tags">${tags}</div>
+        </a>
+      `;
+    }).join('');
+  }
+
+  async function renderArticle(slug) {
+    const articles = await loadArticles();
+    const meta = articles.find(a => a.slug === slug);
+    if (!meta) {
+      location.hash = '';
+      return;
+    }
+
+    backLink.setAttribute('href', '#');
+    backLink.textContent = '← Tous les articles';
+    listView.style.display = 'none';
+    articleView.style.display = 'block';
+
+    document.getElementById('art-title').textContent = meta.title;
+    document.getElementById('art-date').textContent = meta.date || '';
+    document.getElementById('art-tags').textContent = (meta.tags || []).join(' · ');
+    document.title = `${meta.title} — Knowledge — Dylan Lebreton`;
+
+    const body = document.getElementById('art-body');
+    body.innerHTML = '<p style="color:var(--muted);">Chargement…</p>';
+
+    try {
+      const r = await fetch(`./articles/${encodeURIComponent(slug)}.md`, { cache: 'no-cache' });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const md = await r.text();
+      body.innerHTML = marked.parse(md);
+      document.querySelectorAll('#art-body pre code').forEach(el => {
+        try { hljs.highlightElement(el); } catch {}
+      });
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    } catch (err) {
+      body.innerHTML = `<p style="color:var(--muted);">Impossible de charger l'article (${escape(err.message)}).</p>`;
+      console.error(err);
+    }
+  }
+
+  function route() {
+    const slug = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+    if (slug) {
+      renderArticle(slug);
+    } else {
+      document.title = 'Knowledge — Dylan Lebreton';
+      renderList();
+    }
+  }
+
+  window.addEventListener('hashchange', route);
+  route();
+</script>
+</body>
+</html>
