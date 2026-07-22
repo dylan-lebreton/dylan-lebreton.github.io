@@ -9,6 +9,6 @@ summary: Courbes ROC et Precision-Recall interactives — impact du déséquilib
 Courbes ROC et Precision-Recall interactives, pour visualiser l'impact du déséquilibre
 des classes sur l'évaluation d'un classifieur.
 
-**[Ouvrir l'app interactive ↗](projects/roc-pr/)**
+**[Ouvrir l'app interactive ↗](content/projets/roc-pr/)**
 
 Retour à l'[[index|accueil]].

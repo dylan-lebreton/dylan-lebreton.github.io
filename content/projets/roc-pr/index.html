@@ -5,24 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ROC & PR Explorer</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --bg: #0b0e14;
-    --surface: #131720;
-    --border: rgba(255,255,255,0.06);
-    --text: #e2e8f0;
-    --text-dim: #64748b;
-    --text-muted: #475569;
-    --accent: #6d9fff;
+    --bg: #ffffff;
+    --surface: #f7f7f5;
+    --border: rgba(0,0,0,0.08);
+    --text: #37352f;
+    --text-dim: #787066;
+    --text-muted: #9b9a97;
+    --accent: #2383e2;
   }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'DM Sans', system-ui, sans-serif;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
     min-height: 100vh;
     padding: 24px 20px;
   }
@@ -53,11 +51,11 @@
   .value-row { display: flex; align-items: center; gap: 10px; }
   .value-row input[type="range"] { flex: 1; accent-color: var(--accent); height: 4px; }
   .value-display {
-    font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; font-weight: 500;
     color: var(--text); min-width: 80px; text-align: right;
   }
   .sub-info {
-    font-family: 'DM Mono', monospace; font-size: 11px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px;
     color: var(--text-muted); margin-top: 4px;
   }
 
@@ -76,7 +74,7 @@
 
   .note {
     margin-top: 20px; padding: 14px 18px; border-radius: 8px;
-    background: rgba(109,159,255,0.05); border: 1px solid rgba(109,159,255,0.1);
+    background: rgba(35,131,226,0.06); border: 1px solid rgba(35,131,226,0.18);
     font-size: 12px; line-height: 1.65; color: var(--text-dim);
   }
   .note strong { color: var(--text); }
@@ -195,9 +193,9 @@ function trapAUC(xs, ys) {
 // ── Models ─────────────────────────────────────────
 
 const MODELS = [
-  { name: 'Parfait',   sep: 3.5, color: '#34d399' },
-  { name: 'Mid',       sep: 1.0, color: '#6d9fff' },
-  { name: 'Aléatoire', sep: 0.0, color: '#f87171' },
+  { name: 'Parfait',   sep: 3.5, color: '#0f7b6c' },
+  { name: 'Mid',       sep: 1.0, color: '#2383e2' },
+  { name: 'Aléatoire', sep: 0.0, color: '#e03e3e' },
 ];
 
 // ── Drawing ────────────────────────────────────────
@@ -220,7 +218,7 @@ function drawChart(canvas, curves, xLabel, yLabel, guideLine) {
   ctx.clearRect(0, 0, W, H);
 
   // Grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)';
   ctx.lineWidth = 0.5;
   for (let v = 0; v <= 1; v += 0.25) {
     ctx.beginPath(); ctx.moveTo(toX(0), toY(v)); ctx.lineTo(toX(1), toY(v)); ctx.stroke();
@@ -228,16 +226,16 @@ function drawChart(canvas, curves, xLabel, yLabel, guideLine) {
   }
 
   // Tick labels
-  ctx.fillStyle = '#475569';
-  ctx.font = "11px 'DM Mono', monospace";
+  ctx.fillStyle = '#9b9a97';
+  ctx.font = "11px ui-monospace, monospace";
   ctx.textAlign = 'right';
   for (let v = 0; v <= 1; v += 0.25) ctx.fillText(v.toFixed(2), pad.left - 6, toY(v) + 4);
   ctx.textAlign = 'center';
   for (let v = 0; v <= 1; v += 0.25) ctx.fillText(v.toFixed(2), toX(v), H - pad.bottom + 18);
 
   // Axis labels
-  ctx.fillStyle = '#64748b';
-  ctx.font = "12px 'DM Sans', sans-serif";
+  ctx.fillStyle = '#787066';
+  ctx.font = "12px system-ui, sans-serif";
   ctx.textAlign = 'center';
   ctx.fillText(xLabel, pad.left + cw / 2, H - 4);
   ctx.save();
@@ -249,7 +247,7 @@ function drawChart(canvas, curves, xLabel, yLabel, guideLine) {
   // Guide line
   if (guideLine != null) {
     ctx.setLineDash([5, 4]);
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     if (guideLine === 'diagonal') {
@@ -281,11 +279,11 @@ function drawChart(canvas, curves, xLabel, yLabel, guideLine) {
 
   for (const { name, color, auc } of curves) {
     const label = `${name}  AUC = ${auc.toFixed(4)}`;
-    ctx.font = "600 11px 'DM Mono', monospace";
+    ctx.font = "600 11px ui-monospace, monospace";
     const tw = ctx.measureText(label).width;
 
     // Pill background
-    ctx.fillStyle = 'rgba(11,14,20,0.8)';
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
     ctx.beginPath();
     ctx.roundRect(rx - tw - 24, ly - 12, tw + 24, 19, 4);
     ctx.fill();
@@ -297,7 +295,7 @@ function drawChart(canvas, curves, xLabel, yLabel, guideLine) {
     ctx.fill();
 
     // Text
-    ctx.fillStyle = '#cbd5e1';
+    ctx.fillStyle = '#37352f';
     ctx.textAlign = 'left';
     ctx.fillText(label, rx - tw - 4, ly + 2);
 
