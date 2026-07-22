@@ -1,10 +1,11 @@
 # dylan-lebreton.github.io
 
-Mon wiki personnel : https://dylan-lebreton.github.io
+Wiki personnel de Dylan Lebreton : https://dylan-lebreton.github.io
 
-Généré par [Quartz v4](https://quartz.jzhao.xyz/) à partir des markdown de `content/`.
-Le build et le déploiement se font automatiquement dans GitHub Actions à chaque push sur
-`main` : **éditer du markdown → commit → push, c'est tout** (~1 min 30 pour voir le site à jour).
+Site généré par [Quartz v4](https://quartz.jzhao.xyz/) à partir des fichiers markdown de
+`content/`. Le build et le déploiement se font automatiquement dans GitHub Actions à chaque
+push sur `main`. Le flux de travail se résume donc à trois étapes : éditer du markdown,
+committer, pousser. Le site est à jour environ une minute trente après le push.
 
 Prévisualisation locale (optionnelle) :
 
@@ -15,11 +16,11 @@ npx quartz build --serve  # http://localhost:8080, rechargement à chaud
 
 ## Comment écrire une page
 
-Une page = un fichier `.md` dans `content/`, un sous-dossier = une section dans
-l'explorateur (imbrication illimitée). Nommer les fichiers en `kebab-case`
-(`concepts-de-base.md`), sans accents ni espaces. `content/index.md` est la page
-d'accueil (à ne pas supprimer) ; un `index.md` dans un dossier personnalise la page de
-la section (sinon Quartz génère une simple liste).
+Une page correspond à un fichier `.md` dans `content/`, et un sous-dossier devient une
+section dans l'explorateur (l'imbrication est illimitée). Les fichiers sont nommés en
+`kebab-case` (par exemple `concepts-de-base.md`), sans accents ni espaces. `content/index.md`
+est la page d'accueil et ne doit pas être supprimée. Un `index.md` placé dans un dossier
+personnalise la page de la section ; en son absence, Quartz génère une simple liste.
 
 ### Le front-matter (l'en-tête entre `---`)
 
@@ -35,40 +36,43 @@ draft: true
 ```
 
 - `title` : le titre affiché en haut de la page, dans l'explorateur, la recherche et les
-  liens. **C'est lui qui remplace le `# Titre`** qu'on mettrait d'habitude : Quartz
-  l'affiche déjà en H1, donc pas de `#` dans le corps — on démarre directement aux `##`.
-  Sans `title`, Quartz prend le nom du fichier.
-- `tags` : optionnel — chaque tag a une page auto-générée qui liste ses notes.
-- `draft: true` : optionnel — la page est buildée en local mais **pas publiée**.
+  liens. **Il remplace le `# Titre`** qu'on mettrait d'habitude, puisque Quartz l'affiche
+  déjà en H1. Le corps de la page démarre donc directement aux `##`, sans `#`. En l'absence
+  de `title`, Quartz reprend le nom du fichier.
+- `tags` : facultatif. Chaque tag dispose d'une page auto-générée qui liste ses notes.
+- `draft: true` : facultatif. La page est buildée en local mais n'est pas publiée.
 
 ### Titres
 
-`##` pour les sections, `###`/`####` pour les sous-sections. Le sommaire à droite de
+`##` pour les sections, `###` et `####` pour les sous-sections. Le sommaire à droite de
 chaque page se construit tout seul à partir de ces titres.
 
 ### Liens entre pages
 
-- `[[cargo]]` → lien vers la page, le nom de fichier suffit s'il est unique.
-- `[[cargo|libellé]]` → lien avec un autre texte.
-- `[[knowledge/rust/cargo]]` → chemin complet si le nom est ambigu.
-- `[[knowledge/rust/|Rust]]` → lien vers un dossier (avec le `/` final).
-- `[[cargo#Dépendances]]` → lien vers une section précise.
-- Lien vers une page qui n'existe pas encore : le build passe, le lien restera mort
-  jusqu'à ce que la page soit créée.
+- `[[cargo]]` : lien vers la page, le nom de fichier suffit s'il est unique.
+- `[[cargo|libellé]]` : lien avec un autre texte.
+- `[[knowledge/rust/cargo]]` : chemin complet si le nom est ambigu.
+- `[[knowledge/rust/|Rust]]` : lien vers un dossier (avec le `/` final).
+- `[[cargo#Dépendances]]` : lien vers une section précise.
+- Un lien vers une page inexistante n'empêche pas le build ; il reste mort jusqu'à la
+  création de la page.
 - Lien externe : markdown classique `[texte](https://…)`.
 
 ### Transclusion (inclure une page dans une autre)
 
-- `![[cargo]]` → insère tout le contenu de la page.
-- `![[cargo#Dépendances]]` → insère uniquement cette section.
+- `![[cargo]]` : insère tout le contenu de la page.
+- `![[cargo#Dépendances]]` : insère uniquement cette section.
 
 ### Images et fichiers
 
-Poser le fichier dans `content/` (par ex. à côté de la page) puis `![[schema.png]]`.
+Le fichier est déposé dans `content/` (par exemple à côté de la page), puis appelé avec
+`![[schema.png]]`.
 
 ### Mise en forme
 
-- Code : blocs ` ```rust ` / ` ```python ` / ` ```bash `… (coloration auto), `inline` avec les backticks.
+- Code : blocs ` ```rust ` / ` ```python ` / ` ```bash ` avec coloration automatique, et
+  `inline` avec les backticks.
 - Maths KaTeX : `$e^{i\pi}$` en ligne, `$$ … $$` en bloc.
-- Callouts : `> [!note]`, `> [!tip]`, `> [!warning]`, `> [!example]`… — repliables avec `> [!note]-`.
-- Tableaux, listes, citations, gras/italique : markdown standard (GFM).
+- Callouts : `> [!note]`, `> [!tip]`, `> [!warning]`, `> [!example]`, repliables avec la
+  variante `> [!note]-`.
+- Tableaux, listes, citations, gras et italique : markdown standard (GFM).
