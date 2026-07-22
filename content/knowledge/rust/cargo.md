@@ -4,54 +4,54 @@ tags:
   - rust
 ---
 
-## Compilation et exécution
+## Building and running
 
-Pour compiler :
+To build:
 
 ```bash
 cargo build
 ```
 
-Pour compiler et exécuter :
+To build and run:
 
 ```bash
 cargo run
 ```
 
-Pour checker la compilation (sans compiler) :
+To check that the code compiles (without producing a binary):
 
 ```bash
 cargo check
 ```
 
-Pour compiler avec optimisations :
+To build with optimisations:
 
 ```bash
 cargo build --release
 ```
 
-Pour compiler et exécuter avec optimisations :
+To build and run with optimisations:
 
 ```bash
 cargo run --release
 ```
 
-## Dépendances
+## Dependencies
 
-Ajouter une "crate" (caisse), c'est-à-dire une librairie :
+Add a "crate", that is, a library:
 
 ```bash
 cargo add rand
 ```
 
-Les librairies sont ajoutées au `Cargo.toml`, et tout est spécifié dans le `Cargo.lock`.
-Pour update les librairies manuellement :
+Libraries are added to `Cargo.toml`, and everything is pinned in `Cargo.lock`. To update
+the libraries manually:
 
 ```bash
 cargo update
 ```
 
-Pour générer la doc de toutes les dépendances du projet :
+To generate the documentation for all of the project's dependencies:
 
 ```bash
 cargo doc --open

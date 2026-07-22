@@ -2,4 +2,4 @@
 title: Rust
 ---
 
-Mes notes d'apprentissage du langage Rust.
+My notes on learning the Rust language.

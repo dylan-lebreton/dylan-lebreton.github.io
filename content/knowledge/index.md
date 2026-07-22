@@ -2,4 +2,4 @@
 title: Knowledge
 ---
 
-Les articles de connaissance que je développe au fil de l'eau.
+The knowledge articles I write up as I go along.
