@@ -41,6 +41,26 @@ draft: true
   de `title`, Quartz reprend le nom du fichier.
 - `tags` : facultatif. Chaque tag dispose d'une page auto-générée qui liste ses notes.
 - `draft: true` : facultatif. La page est buildée en local mais n'est pas publiée.
+- `rank` : facultatif. Un nombre qui force la position de la page (voir ci-dessous).
+
+### Ordonner les pages
+
+Par défaut, les pages d'une section sont rangées par ordre alphabétique de leur `title`,
+dans l'explorateur de gauche comme dans la liste d'une page de section. Pour imposer un
+autre ordre, on ajoute une clé `rank` au front-matter :
+
+```yaml
+---
+title: Variables
+rank: 1
+---
+```
+
+Le plus petit nombre passe en premier. Une page sans `rank` se range alphabétiquement,
+après les pages qui en ont un. Pour ordonner un dossier, on met le `rank` dans le
+front-matter de son `index.md`. En prévisualisation locale, un changement de `rank` n'est
+répercuté dans l'explorateur de gauche qu'après avoir relancé `npx quartz build --serve`
+(la liste des pages de section, elle, suit le rechargement à chaud).
 
 ### Titres
 
