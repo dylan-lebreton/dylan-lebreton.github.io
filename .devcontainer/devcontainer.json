@@ -11,8 +11,8 @@
       ]
     }
   },
-  "forwardPorts": [8000],
+  "forwardPorts": [8080],
   "portsAttributes": {
-    "8000": { "label": "Site statique (préviz locale)" }
+    "8080": { "label": "Quartz (préviz locale)" }
   }
 }
