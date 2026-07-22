@@ -76,7 +76,30 @@ const config: QuartzConfig = {
       Plugin.AliasRedirects(),
       Plugin.ComponentResources(),
       Plugin.ContentPage(),
-      Plugin.FolderPage(),
+      // Liste des pages d'une section : même règle que l'explorateur (quartz.layout.ts).
+      // `rank` du front-matter d'abord (plus petit = plus haut), puis dossiers avant
+      // pages, puis ordre alphabétique des titres.
+      Plugin.FolderPage({
+        sort: (a, b) => {
+          const rankOf = (file: typeof a) => {
+            const raw = (file.frontmatter as Record<string, unknown> | undefined)?.rank
+            const value = typeof raw === "number" || typeof raw === "string" ? Number(raw) : NaN
+            return Number.isFinite(value) ? value : Number.MAX_SAFE_INTEGER
+          }
+          if (rankOf(a) !== rankOf(b)) {
+            return rankOf(a) - rankOf(b)
+          }
+          const aIsFolder = (a.slug ?? "").endsWith("/index")
+          const bIsFolder = (b.slug ?? "").endsWith("/index")
+          if (aIsFolder !== bIsFolder) {
+            return aIsFolder ? -1 : 1
+          }
+          return (a.frontmatter?.title ?? "").localeCompare(b.frontmatter?.title ?? "", undefined, {
+            numeric: true,
+            sensitivity: "base",
+          })
+        },
+      }),
       Plugin.TagPage(),
       Plugin.ContentIndex({
         enableSiteMap: true,
