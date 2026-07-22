@@ -1,47 +1,11 @@
 ---
-title: Concepts de base
+title: Types de données
+rank: 2
 tags:
   - rust
 ---
 
-Pour tout ce qui touche à la compilation et aux dépendances, voir [[cargo|Cargo]].
-
-## Variables
-
-Définition d'une variable :
-
-```rust
-let x: int = 10;
-```
-
-Définition d'une variable mutable :
-
-```rust
-let mut x: int = 10;
-
-x = 6;
-```
-
-Définition d'une constante (obligatoire, on peut pas juste déclarer) :
-
-```rust
-const THREE_HOURS_IN_SECONDS: u32; // erreur de compilation
-const THREE_HOURS_IN_SECONDS: u32 = 60 * 60 * 3;
-```
-
-Une variable mutable ne peut changer que de valeur, pas de type.
-
-Pour modifier le type d'une variable, on doit utiliser le shadowing :
-
-```rust
-let age = "42";         // String
-
-let age: u32 = age.parse().unwrap(); // u32 — même nom, type différent !
-```
-
-## Types de données
-
-### Entiers
+## Entiers
 
 | Longueur | Signé | Non signé | Intervalle signé | Intervalle non signé |
 | --- | --- | --- | --- | --- |
@@ -96,23 +60,23 @@ x.overflowing_add(10)  // (4, true)
 x.saturating_add(10)   // 255 (plafonne)
 ```
 
-### Flottants
+## Flottants
 
 `f32` (32-bit) et `f64` (64-bit, par défaut). Standard IEEE-754. Toujours signés.
 
-### Opérations numériques
+## Opérations numériques
 
 `+`, `-`, `*`, `/`, `%` — la division entière tronque vers zéro : `7 / 3 == 2`, `-7 / 3 == -2`.
 
-### Booléens
+## Booléens
 
 `bool` : `true` / `false`, 1 octet.
 
-### Caractères
+## Caractères
 
 `char` : 4 octets, Unicode scalar (`'z'`, `'ℤ'`, `'😻'`). Simple quotes (vs `"` pour les strings).
 
-### Tuples
+## Tuples
 
 Taille fixe, types hétérogènes. Accès par destructuring ou par index (`.0`, `.1`…).
 
@@ -128,7 +92,7 @@ Le tuple vide `()` s'appelle **unit** — valeur de retour implicite quand une f
 retourne rien. Pour une valeur potentiellement absente, Rust utilise `Option<T>` (pas de
 `null` en Rust).
 
-### Arrays
+## Arrays
 
 Taille fixe, type homogène, alloué sur la **stack**. Pour une taille variable → utiliser `Vec`.
 
@@ -143,7 +107,7 @@ let first = a[0];
 Un accès hors limites provoque un **panic** à l'exécution (pas d'accès mémoire invalide
 comme en C).
 
-### Fonctions
+## Fonctions
 
 Déclarées avec `fn`, convention **snake_case**. Les types des paramètres sont obligatoires.
 
@@ -183,7 +147,7 @@ fn add(a: i32, b: i32) -> i32 {
 }
 ```
 
-### Conditions `if`
+## Conditions `if`
 
 ```rust
 if number % 4 == 0 {
@@ -202,7 +166,7 @@ let condition = true;
 let number = if condition { 5 } else { 6 };
 ```
 
-### Autre
+## Autre
 
 Pour générer un range (inclusif à gauche et à droite) :
 
