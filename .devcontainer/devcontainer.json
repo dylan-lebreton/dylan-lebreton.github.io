@@ -15,5 +15,6 @@
   "portsAttributes": {
     "8080": { "label": "Quartz (préviz locale)" },
     "3001": { "label": "Quartz (hot-reload)" }
-  }
+  },
+  "postCreateCommand": "npm ci"
 }

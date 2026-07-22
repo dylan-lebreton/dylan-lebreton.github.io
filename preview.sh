@@ -3,6 +3,12 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+# Filet de sécurité : installe les dépendances si elles manquent (ex. conteneur neuf).
+if [ ! -d node_modules ]; then
+  echo "Première utilisation, installation des dépendances (npm ci)…"
+  npm ci
+fi
+
 echo ""
 echo "  ┌──────────────────────────────────────────"
 echo "  │  Prévisualisation du wiki"
