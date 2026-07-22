@@ -4,70 +4,424 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dylan Lebreton — Data Scientist</title>
-<meta name="description" content="Portfolio de Dylan Lebreton — Data Scientist chez HSBC Assurance Vie. Projets interactifs, notes et articles.">
+<meta name="description" content="Site de Dylan Lebreton — Data Scientist. Base de connaissances : projets, notes et articles en Markdown.">
 <link rel="stylesheet" href="./assets/styles.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11/styles/github-dark.min.css">
 </head>
-<body>
-<div class="container">
+<body class="kb">
 
-  <header class="hero">
-    <h1>Dylan Lebreton</h1>
-    <p class="bio">
-      Applied mathematics &amp; computer science engineer focused on Artificial Intelligence
-      (ModIA joint degree from INSA Toulouse and INP ENSEEIHT). Currently a Data Scientist
-      in life insurance at Korege (formerly HSBC Assurance Vie), a subsidiary of the Matmut group.
-    </p>
-    <p class="bio">
-      This site is where I share my projects and my knowledge base (currently being migrated from Notion).
-    </p>
-  </header>
+<div class="kb-mobile-bar">
+  <button id="kb-btn-nav" type="button">☰ Menu</button>
+  <button id="kb-btn-toc" type="button" style="display:none;">Sommaire</button>
+</div>
 
-  <div class="section-label">Explorer</div>
-  <div class="grid">
+<div class="kb-shell">
 
-    <a href="./bnpp-fraud-detection/" class="card" style="--card-accent:#6d9fff;">
-      <span class="arrow">↗</span>
-      <div class="card-icon" style="background:rgba(109,159,255,0.12);color:#6d9fff;">🔍</div>
-      <div class="card-title">BNPP Fraud Detection</div>
-      <div class="card-desc">Notebook d'étude sur un challenge de détection de fraude — exploration, features, modèles.</div>
-      <div class="card-tags">
-        <span class="card-tag">notebook</span>
-        <span class="card-tag">fraude</span>
-      </div>
+  <aside class="kb-nav" id="kb-nav">
+    <a href="#" class="kb-brand">
+      <span class="kb-brand-name">Dylan Lebreton</span>
+      <span class="kb-brand-sub">data scientist</span>
     </a>
-
-    <a href="./projects/" class="card" style="--card-accent:#a78bfa;">
-      <span class="arrow">↗</span>
-      <div class="card-icon" style="background:rgba(167,139,250,0.12);color:#a78bfa;">🧪</div>
-      <div class="card-title">Projects</div>
-      <div class="card-desc">Mes apps interactives et notebooks publiés — outils pour explorer des concepts data/ML.</div>
-      <div class="card-tags">
-        <span class="card-tag">apps</span>
-        <span class="card-tag">interactif</span>
-      </div>
-    </a>
-
-    <a href="./knowledge/" class="card" style="--card-accent:#34d399;">
-      <span class="arrow">↗</span>
-      <div class="card-icon" style="background:rgba(52,211,153,0.12);color:#34d399;">📚</div>
-      <div class="card-title">Knowledge</div>
-      <div class="card-desc">Notes, articles et résumés techniques que j'écris au fil des projets et des lectures.</div>
-      <div class="card-tags">
-        <span class="card-tag">notes</span>
-        <span class="card-tag">articles</span>
-      </div>
-    </a>
-
-  </div>
-
-  <footer class="footer">
-    <div class="copy">© Dylan Lebreton</div>
-    <div class="links">
+    <input id="kb-search" class="kb-search" type="search" placeholder="Rechercher…" autocomplete="off" spellcheck="false">
+    <nav id="kb-tree" class="kb-tree"></nav>
+    <div class="kb-nav-footer">
       <a href="https://github.com/dylan-lebreton" target="_blank" rel="noopener">GitHub ↗</a>
       <a href="https://www.linkedin.com/in/dylan-lebreton/" target="_blank" rel="noopener">LinkedIn ↗</a>
     </div>
-  </footer>
+  </aside>
+
+  <main class="kb-main">
+    <div id="kb-page">
+      <header id="page-header" class="article-header" style="display:none;">
+        <div class="meta" id="page-meta"></div>
+        <h1 id="page-title"></h1>
+      </header>
+      <article id="page-body" class="prose"></article>
+    </div>
+
+    <div id="kb-results" style="display:none;">
+      <div class="section-label" id="kb-results-label">Résultats</div>
+      <div id="kb-results-list" class="article-list"></div>
+    </div>
+  </main>
+
+  <aside class="kb-toc" id="kb-toc">
+    <div class="kb-toc-title">Sommaire</div>
+    <nav id="kb-toc-list" class="kb-toc-list"></nav>
+  </aside>
 
 </div>
+
+<div class="kb-overlay" id="kb-overlay"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11/highlight.min.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const pageView = $('kb-page');
+  const resultsView = $('kb-results');
+  const pageBody = $('page-body');
+  const tocEl = $('kb-toc');
+  const tocList = $('kb-toc-list');
+  const searchInput = $('kb-search');
+
+  let manifest = { home: null, tree: [] };
+  const pages = [];              // toutes les pages, à plat (accueil inclus)
+  const bySlug = new Map();
+  const byTitle = new Map();     // titre normalisé -> slug
+  const byBasename = new Map();  // dernier segment -> slug (null si ambigu)
+  const mdCache = new Map();
+  let headings = [];
+  let renderSeq = 0;
+
+  let collapsed = new Set();
+  try { collapsed = new Set(JSON.parse(localStorage.getItem('site.nav.collapsed') || '[]')); } catch {}
+  function saveCollapsed() {
+    localStorage.setItem('site.nav.collapsed', JSON.stringify([...collapsed]));
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+  function normalize(s) {
+    return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+  function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  marked.setOptions({ gfm: true, breaks: false });
+
+  /* ---------- Données ---------- */
+
+  function registerPage(p) {
+    pages.push(p);
+    bySlug.set(p.slug, p);
+    const nt = normalize(p.title);
+    if (!byTitle.has(nt)) byTitle.set(nt, p.slug);
+    const base = p.slug.split('/').pop();
+    byBasename.set(base, byBasename.has(base) ? null : p.slug);
+  }
+
+  function flatten(nodes) {
+    for (const n of nodes) {
+      if (n.type === 'folder') flatten(n.children);
+      else registerPage(n);
+    }
+  }
+
+  function currentSlug() {
+    const s = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+    return s === '' ? 'index' : s;
+  }
+
+  /* ---------- Sidebar ---------- */
+
+  function renderTree() {
+    const cur = currentSlug();
+    const homeActive = cur === 'index' ? ' active' : '';
+    $('kb-tree').innerHTML =
+      `<a class="kb-link kb-link-home${homeActive}" href="#">Accueil</a>` +
+      renderNodes(manifest.tree || [], cur);
+    document.querySelectorAll('.kb-folder-btn').forEach(btn =>
+      btn.addEventListener('click', () => toggleFolder(btn.dataset.path)));
+  }
+
+  function renderNodes(nodes, cur) {
+    return nodes.map(n => {
+      if (n.type === 'folder') {
+        const isOpen = !collapsed.has(n.path);
+        return `<div class="kb-folder${isOpen ? ' open' : ''}">
+            <button type="button" class="kb-folder-btn" data-path="${escapeHtml(n.path)}">
+              <span class="kb-chevron">▸</span><span>${escapeHtml(n.title)}</span>
+            </button>
+            <div class="kb-folder-children"${isOpen ? '' : ' style="display:none;"'}>${renderNodes(n.children, cur)}</div>
+          </div>`;
+      }
+      const active = n.slug === cur ? ' active' : '';
+      return `<a class="kb-link${active}" href="#${escapeHtml(n.slug)}">${escapeHtml(n.title)}</a>`;
+    }).join('');
+  }
+
+  function toggleFolder(path) {
+    if (collapsed.has(path)) collapsed.delete(path); else collapsed.add(path);
+    saveCollapsed();
+    renderTree();
+  }
+
+  /* ---------- Vues ---------- */
+
+  function showView(name) {
+    pageView.style.display = name === 'page' ? '' : 'none';
+    resultsView.style.display = name === 'results' ? '' : 'none';
+    if (name !== 'page') {
+      tocEl.classList.remove('has-toc');
+      $('kb-btn-toc').style.display = 'none';
+      headings = [];
+    }
+  }
+
+  /* ---------- Wiki-links + liens .md ---------- */
+
+  function resolveWiki(target) {
+    const t = target.trim().replace(/\.md$/, '');
+    if (bySlug.has(t)) return t;
+    const byT = byTitle.get(normalize(t));
+    if (byT) return byT;
+    const byB = byBasename.get(t);
+    return byB || null;
+  }
+
+  function applyWikiLinks(md) {
+    return md.replace(/\[\[([^\[\]|]+)(?:\|([^\[\]]+))?\]\]/g, (m, target, label) => {
+      const slug = resolveWiki(target);
+      const text = (label || '').trim() || (slug ? bySlug.get(slug).title : target.trim());
+      if (!slug) return `<span class="kb-broken" title="Page introuvable : ${escapeHtml(target.trim())}">${escapeHtml(text)}</span>`;
+      return `[${text}](#${slug === 'index' ? '' : slug})`;
+    });
+  }
+
+  function resolveRelative(baseSlug, href) {
+    const out = baseSlug.split('/').slice(0, -1);
+    for (const p of href.split('/')) {
+      if (p === '' || p === '.') continue;
+      if (p === '..') out.pop(); else out.push(p);
+    }
+    return out.join('/');
+  }
+
+  function fixLinks(slug) {
+    pageBody.querySelectorAll('a[href]').forEach(a => {
+      const href = a.getAttribute('href');
+      if (/^https?:\/\//.test(href)) { a.target = '_blank'; a.rel = 'noopener'; return; }
+      if (href.startsWith('#') || href.startsWith('mailto:')) return;
+      if (/\.md$/.test(href)) {
+        const target = resolveRelative(slug, href).replace(/\.md$/, '');
+        if (bySlug.has(target)) a.setAttribute('href', '#' + (target === 'index' ? '' : target));
+      }
+    });
+  }
+
+  /* ---------- Rendu d'une page ---------- */
+
+  async function getMarkdown(slug) {
+    if (mdCache.has(slug)) return mdCache.get(slug);
+    const path = './content/' + slug.split('/').map(encodeURIComponent).join('/') + '.md';
+    const r = await fetch(path, { cache: 'no-cache' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const md = (await r.text()).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
+    mdCache.set(slug, md);
+    return md;
+  }
+
+  async function renderPage(slug) {
+    const meta = bySlug.get(slug);
+    if (!meta) { location.hash = ''; return; }
+    const seq = ++renderSeq;
+    showView('page');
+    document.title = slug === 'index'
+      ? 'Dylan Lebreton — Data Scientist'
+      : `${meta.title} — Dylan Lebreton`;
+    pageBody.innerHTML = '<p style="color:var(--muted);">Chargement…</p>';
+    $('page-header').style.display = 'none';
+
+    try {
+      const md = await getMarkdown(slug);
+      if (seq !== renderSeq) return;
+
+      pageBody.innerHTML = marked.parse(applyWikiLinks(md));
+      fixLinks(slug);
+      pageBody.querySelectorAll('pre code').forEach(el => {
+        try { hljs.highlightElement(el); } catch {}
+      });
+
+      const hasH1 = /^\s*#\s/.test(md);
+      const metaText = [meta.date, (meta.tags || []).join(' · ')].filter(Boolean).join(' · ');
+      const showTitle = !hasH1;
+      $('page-meta').textContent = metaText;
+      $('page-meta').style.display = metaText ? '' : 'none';
+      $('page-title').textContent = meta.title;
+      $('page-title').style.display = showTitle ? '' : 'none';
+      $('page-header').style.display = (metaText || showTitle) ? '' : 'none';
+
+      buildToc();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    } catch (err) {
+      if (seq !== renderSeq) return;
+      pageBody.innerHTML = `<p style="color:var(--muted);">Impossible de charger la page (${escapeHtml(err.message)}).</p>`;
+      console.error(err);
+    }
+  }
+
+  /* ---------- Sommaire (TOC) ---------- */
+
+  function buildToc() {
+    headings = [...pageBody.querySelectorAll('h2, h3')];
+    const used = new Set();
+    for (const h of headings) {
+      const base = normalize(h.textContent).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'section';
+      let id = base, i = 2;
+      while (used.has(id)) id = `${base}-${i++}`;
+      used.add(id);
+      h.id = id;
+    }
+    if (headings.length < 2) {
+      tocEl.classList.remove('has-toc');
+      $('kb-btn-toc').style.display = 'none';
+      tocList.innerHTML = '';
+      return;
+    }
+    tocEl.classList.add('has-toc');
+    $('kb-btn-toc').style.display = '';
+    tocList.innerHTML = headings.map(h =>
+      `<a class="kb-toc-link${h.tagName === 'H3' ? ' kb-toc-h3' : ''}" data-target="${h.id}">${escapeHtml(h.textContent)}</a>`
+    ).join('');
+    tocList.querySelectorAll('a').forEach(a => a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.getElementById(a.dataset.target);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      closePanels();
+    }));
+    onScroll();
+  }
+
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!headings.length) return;
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(() => { ticking = false; onScroll(); });
+    }
+  }, { passive: true });
+
+  function onScroll() {
+    if (!headings.length) return;
+    let activeId = headings[0].id;
+    for (const h of headings) {
+      if (h.getBoundingClientRect().top <= 140) activeId = h.id; else break;
+    }
+    tocList.querySelectorAll('.kb-toc-link').forEach(a =>
+      a.classList.toggle('active', a.dataset.target === activeId));
+  }
+
+  /* ---------- Recherche ---------- */
+
+  let searchTimer = null;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(runSearch, 200);
+  });
+  searchInput.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { searchInput.value = ''; runSearch(); }
+  });
+
+  async function runSearch() {
+    const q = searchInput.value.trim();
+    if (!q) { route(); return; }
+    await Promise.all(pages.map(p => getMarkdown(p.slug).catch(() => '')));
+    const nq = normalize(q);
+    const results = [];
+    for (const p of pages) {
+      const content = mdCache.get(p.slug) || '';
+      const haystack = [p.title, (p.tags || []).join(' '), p.summary || '', content].join(' ');
+      if (normalize(haystack).includes(nq)) {
+        results.push({ p, content });
+      }
+    }
+    renderResults(q, results);
+  }
+
+  function highlightMatch(text, q) {
+    return escapeHtml(text).replace(
+      new RegExp('(' + escapeRegExp(escapeHtml(q)) + ')', 'gi'),
+      '<mark>$1</mark>');
+  }
+
+  function makeSnippet(content, q) {
+    const plain = content
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/\[\[|\]\]|[#>*`\[\]()]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const m = plain.match(new RegExp(escapeRegExp(q), 'i'));
+    const start = m ? Math.max(0, m.index - 60) : 0;
+    let snip = plain.slice(start, start + 180);
+    if (start > 0) snip = '…' + snip;
+    if (start + 180 < plain.length) snip += '…';
+    return highlightMatch(snip, q);
+  }
+
+  function renderResults(q, results) {
+    showView('results');
+    document.title = 'Recherche — Dylan Lebreton';
+    $('kb-results-label').textContent =
+      `${results.length} résultat${results.length > 1 ? 's' : ''} pour « ${q} »`;
+    const list = $('kb-results-list');
+    if (!results.length) {
+      list.innerHTML = '<div class="empty">Aucun résultat.</div>';
+      return;
+    }
+    list.innerHTML = results.map(({ p, content }) => {
+      const where = p.slug === 'index' ? 'accueil' : p.slug.split('/').slice(0, -1).join(' / ') || 'racine';
+      return `<a href="#${p.slug === 'index' ? '' : escapeHtml(p.slug)}" class="article-item">
+          <div class="meta"><span>${escapeHtml(where)}</span>${p.date ? ` · <span>${escapeHtml(p.date)}</span>` : ''}</div>
+          <div class="title">${highlightMatch(p.title, q)}</div>
+          <div class="summary">${makeSnippet(content, q)}</div>
+        </a>`;
+    }).join('');
+  }
+
+  /* ---------- Panneaux mobiles ---------- */
+
+  $('kb-btn-nav').addEventListener('click', () => {
+    document.body.classList.remove('kb-toc-open');
+    document.body.classList.toggle('kb-nav-open');
+  });
+  $('kb-btn-toc').addEventListener('click', () => {
+    document.body.classList.remove('kb-nav-open');
+    document.body.classList.toggle('kb-toc-open');
+  });
+  $('kb-overlay').addEventListener('click', closePanels);
+  function closePanels() {
+    document.body.classList.remove('kb-nav-open', 'kb-toc-open');
+  }
+
+  /* ---------- Routing ---------- */
+
+  function route() {
+    closePanels();
+    const slug = currentSlug();
+    if (!bySlug.has(slug)) { location.hash = ''; return; }
+    let changed = false;
+    const parts = slug.split('/');
+    for (let i = 1; i < parts.length; i++) {
+      if (collapsed.delete(parts.slice(0, i).join('/'))) changed = true;
+    }
+    if (changed) saveCollapsed();
+    renderTree();
+    renderPage(slug);
+  }
+
+  window.addEventListener('hashchange', () => {
+    searchInput.value = '';
+    route();
+  });
+
+  (async function init() {
+    try {
+      const r = await fetch('./content/manifest.json', { cache: 'no-cache' });
+      manifest = await r.json();
+    } catch (err) {
+      pageBody.innerHTML = '<p style="color:var(--muted);">Impossible de charger le manifeste du site.</p>';
+      console.error(err);
+      return;
+    }
+    if (manifest.home) registerPage(manifest.home);
+    flatten(manifest.tree || []);
+    route();
+  })();
+</script>
 </body>
 </html>

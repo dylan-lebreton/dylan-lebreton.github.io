@@ -1,0 +1,32 @@
+name: Build content manifest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/**'
+      - 'scripts/build-manifest.mjs'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regenerate manifest
+        run: node scripts/build-manifest.mjs
+
+      - name: Commit if changed
+        run: |
+          if ! git diff --quiet content/manifest.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add content/manifest.json
+            git commit -m "chore(content): regenerate manifest"
+            git push
+          else
+            echo "Manifest déjà à jour."
+          fi
