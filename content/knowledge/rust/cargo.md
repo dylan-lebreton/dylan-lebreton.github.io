@@ -1,5 +1,6 @@
 ---
 title: Cargo
+rank: 1
 tags:
   - rust
 ---

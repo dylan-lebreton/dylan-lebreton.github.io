@@ -1,9 +1,45 @@
 ---
-title: Data types
+title: Concepts de base
 rank: 2
 tags:
   - rust
 ---
+
+# Variables 
+
+Declaring a variable:
+
+```rust
+let x: i32 = 10;
+```
+
+Declaring a mutable variable:
+
+```rust
+let mut x: i32 = 10;
+
+x = 6;
+```
+
+Declaring a constant (it must always be initialised at declaration):
+
+```rust
+const THREE_HOURS_IN_SECONDS: u32; // compile error
+const THREE_HOURS_IN_SECONDS: u32 = 60 * 60 * 3;
+```
+
+A mutable variable can only change its value, not its type.
+
+To change the type of a variable, you have to use shadowing:
+
+```rust
+let age = "42";         // &str
+
+let age: u32 = age.parse().unwrap(); // u32, same name, different type!
+```
+
+# Data Types
+
 
 ## Integers
 
@@ -110,7 +146,18 @@ let first = a[0];
 An out-of-bounds access triggers a **panic** at runtime (no invalid memory access as in
 C).
 
-## Functions
+## Ranges
+
+A sequence of values between two bounds. The upper bound is excluded by default, and
+included with `=`.
+
+```rust
+let exclusive = 1..5;   // 1, 2, 3, 4
+
+let inclusive = 1..=5;  // 1, 2, 3, 4, 5
+```
+
+# Functions
 
 Declared with `fn`, following the **snake_case** convention. Parameter types are
 mandatory.
@@ -151,7 +198,7 @@ fn add(a: i32, b: i32) -> i32 {
 }
 ```
 
-## `if` conditions
+# `if` conditions
 
 ```rust
 if number % 4 == 0 {
@@ -170,10 +217,9 @@ let condition = true;
 let number = if condition { 5 } else { 6 };
 ```
 
-## Miscellaneous
-
-To generate a range (inclusive on both ends):
+In that case every branch must produce the **same type**, since a variable has one and
+only one type, known at compile time:
 
 ```rust
-start..=end
+let number = if condition { 5 } else { "six" }; // compile error: incompatible types
 ```
